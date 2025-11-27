@@ -1,0 +1,40 @@
+Found duplicates:
+           Municipio             Categoria Hectares Quantidade de Propriedades
+286  Monte Belo (MG)       De 0,1 a menos de 0,2 ha                          2
+305  Monte Belo (MG)       De 0,1 a menos de 0,2 ha                          1
+287  Monte Belo (MG)       De 0,2 a menos de 0,5 ha                         23
+306  Monte Belo (MG)       De 0,2 a menos de 0,5 ha                          2
+288  Monte Belo (MG)         De 0,5 a menos de 1 ha                         32
+307  Monte Belo (MG)         De 0,5 a menos de 1 ha                          5
+289  Monte Belo (MG)           De 1 a menos de 2 ha                        108
+308  Monte Belo (MG)           De 1 a menos de 2 ha                         20
+300  Monte Belo (MG)   De 1.000 a menos de 2.500 ha                          -
+319  Monte Belo (MG)   De 1.000 a menos de 2.500 ha                          -
+294  Monte Belo (MG)         De 10 a menos de 20 ha                        239
+313  Monte Belo (MG)         De 10 a menos de 20 ha                         18
+302  Monte Belo (MG)            De 10.000 ha e mais                          -
+321  Monte Belo (MG)            De 10.000 ha e mais                          -
+297  Monte Belo (MG)       De 100 a menos de 200 ha                          6
+316  Monte Belo (MG)       De 100 a menos de 200 ha                          -
+290  Monte Belo (MG)           De 2 a menos de 3 ha                        100
+309  Monte Belo (MG)           De 2 a menos de 3 ha                          9
+301  Monte Belo (MG)  De 2.500 a menos de 10.000 ha                          -
+320  Monte Belo (MG)  De 2.500 a menos de 10.000 ha                          -
+295  Monte Belo (MG)         De 20 a menos de 50 ha                        170
+314  Monte Belo (MG)         De 20 a menos de 50 ha                         15
+298  Monte Belo (MG)       De 200 a menos de 500 ha                          -
+317  Monte Belo (MG)       De 200 a menos de 500 ha                          -
+291  Monte Belo (MG)           De 3 a menos de 4 ha                        131
+310  Monte Belo (MG)           De 3 a menos de 4 ha                          7
+292  Monte Belo (MG)           De 4 a menos de 5 ha                        131
+311  Monte Belo (MG)           De 4 a menos de 5 ha                         15
+293  Monte Belo (MG)          De 5 a menos de 10 ha                        253
+312  Monte Belo (MG)          De 5 a menos de 10 ha                         16
+296  Monte Belo (MG)        De 50 a menos de 100 ha                         53
+315  Monte Belo (MG)        De 50 a menos de 100 ha                          8
+299  Monte Belo (MG)     De 500 a menos de 1.000 ha                          -
+318  Monte Belo (MG)     De 500 a menos de 1.000 ha                          -
+285  Monte Belo (MG)    Mais de 0 a menos de 0,1 ha                          8
+304  Monte Belo (MG)    Mais de 0 a menos de 0,1 ha                          2
+303  Monte Belo (MG)              Produtor sem área                          -
+322  Monte Belo (MG)              Produtor sem área                          -

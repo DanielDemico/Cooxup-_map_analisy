@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Cooxupé</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #27ae60;
+            --accent-color: #e67e22;
+            --bg-color: #f4f6f7;
+            --text-color: #333;
+            --card-bg: #fff;
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            color: var(--primary-color);
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            padding: 1rem;
+            gap: 1rem;
+        }
+
+        /* Left Column: Map */
+        .map-section {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map-section iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Right Column: Data */
+        .data-section {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-width: 300px;
+        }
+
+        .filters-container {
+            background: var(--card-bg);
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .data-table-container {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .table-wrapper {
+            flex: 1;
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th,
+        td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .download-container {
+            text-align: right;
+        }
+
+        .btn-download {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-download:hover {
+            transform: scale(1.05); 
+    
+            /* Opcional: escurecer a cor levemente para dar feedback visual */
+            filter: brightness(0.9);
+        }
+
+   
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--card-bg);
+            margin-bottom: 1rem;
+        }
+
+        .tab-button {
+            padding: 1rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-color);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-button:hover {
+            background-color: #f8f9fa;
+        }
+
+        .tab-button.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* Collapsible Styles */
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem 0;
+            user-select: none;
+        }
+
+        .collapsible-header:hover {
+            opacity: 0.8;
+        }
+
+        .collapsible-content {
+            display: block;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .collapsible-content.collapsed {
+            display: none;
+        }
+
+        .icon-arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .icon-arrow.collapsed {
+            transform: rotate(-90deg);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Painel de Monitoramento de Cultivos{{ title_suffix }}</h1>
+    </header>
+
+    <div class="main-container">
+        <!-- Left: Map -->
+        <section class="map-section">
+            <iframe src="/map" title="Mapa de Raio"></iframe>
+        </section>
+
+        <!-- Right: Data -->
+        <section class="data-section">
+            <div class="tabs">
+                <button class="tab-button active" onclick="openTab(event, 'tab-culturas')">Culturas Atuais</button>
+                <button class="tab-button" onclick="openTab(event, 'tab-cooperados')">Cooperados</button>
+            </div>
+
+            <!-- Tab 1: Culturas Atuais -->
+            <div id="tab-culturas" class="tab-content active">
+                <div class="filters-container">
+                    <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #eee;">
+                        <label style="margin-bottom: 0.5rem;">Tipo de Dados:</label>
+                        <div style="display: flex; gap: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" id="type-producao" name="data_type" value="producao" {% if
+                                    current_data_type=='producao' %}checked{% endif %}
+                                    onchange="changeDataType(this.value)">
+                                <label for="type-producao"
+                                    style="margin-bottom: 0; font-weight: normal;">Produção</label>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" id="type-area-colhida" name="data_type" value="area_colhida" {% if
+                                    current_data_type=='area_colhida' %}checked{% endif %}
+                                    onchange="changeDataType(this.value)">
+                                <label for="type-area-colhida" style="margin-bottom: 0; font-weight: normal;">Área
+                                    Colhida</label>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="radio" id="type-hectares" name="data_type" value="hectares" {% if
+                                    current_data_type=='hectares' %}checked{% endif %}
+                                    onchange="changeDataType(this.value)">
+                                <label for="type-hectares" style="margin-bottom: 0; font-weight: normal;">Por
+                                    Hectares</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="collapsible-section">
+                        <div class="collapsible-header" onclick="toggleCulturas()">
+                            <label style="margin-bottom: 0; cursor: pointer;">Selecione as Culturas:</label>
+                            <span id="icon-culturas" class="icon-arrow">▼</span>
+                        </div>
+
+                        <div id="content-culturas" class="collapsible-content">
+                            <div class="button-group" style="margin-top: 0.5rem;">
+                                <button id="btn-select-all" onclick="toggleAllCheckboxes(true)"
+                                    style="padding: 0.5rem; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 0.5rem;">
+                                    Selecionar Todos
+                                </button>
+                                <button id="btn-deselect-all" onclick="toggleAllCheckboxes(false)"
+                                    style="padding: 0.5rem; background-color: #95a5a6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                    Desmarcar Todos
+                                </button>
+                            </div>
+                            <div class="checkbox-group">
+                                {% for col in columns %}
+                                {% if col != 'MUNICIPIO' %}
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="chk-{{ loop.index }}" value="{{ col }}"
+                                        onchange="toggleColumn('{{ col }}')" {% if loop.index <=4 %}checked{% endif %}>
+                                    <label for="chk-{{ loop.index }}" style="margin-bottom: 0; font-weight: normal;">{{
+                                        col }}</label>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-clear-filter" onclick="clearMapFilter()"
+                        style="display: none; margin-top: 0.5rem; width: 100%; padding: 0.5rem; background-color: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">Limpar
+                        Filtro de Mapa</button>
+                </div>
+
+                <div class="data-table-container">
+                    <div class="table-wrapper">
+                        <table id="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Município</th>
+                                    {% for col in columns %}
+                                    {% if col != 'MUNICIPIO' %}
+                                    <th class="col-header" data-col="{{ col }}" {% if loop.index> 4 %}style="display:
+                                        none;"{% endif %}>{{ col }}</th>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in data %}
+                                <tr class="data-row" onmouseenter="highlightMap('{{ row['MUNICIPIO'] }}')"
+                                    onmouseleave="resetMap('{{ row['MUNICIPIO'] }}')">
+                                    <td>{{ row['MUNICIPIO'] }}</td>
+                                    {% for col in columns %}
+                                    {% if col != 'MUNICIPIO' %}
+                                    <td class="value-cell" data-col="{{ col }}" {% if loop.index> 4 %}style="display:
+                                        none;"{% endif %}>{{ row[col] }}</td>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Cooperados -->
+            <div id="tab-cooperados" class="tab-content">
+                <div class="data-table-container">
+                    <div class="table-wrapper">
+                        <table id="cooperados-table">
+                            <thead>
+                                <tr>
+                                    <th>Cidade</th>
+                                    <th>Cooperados</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in cooperados_data %}
+                                <tr>
+                                    <td>{{ row['CIDADE'] }}</td>
+                                    <td>{{ row['COOPERADOS'] }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="download-container">
+                <a href="#" class="btn-download" onclick="downloadData(event)">Baixar dados</a>
+            </div>
+
+        </section>
+    </div>
+
+    <script>
+        const currentDataType = "{{ current_data_type }}";
+
+        function getStorageKey() {
+            // Share state between 'producao' and 'area_colhida'
+            if (currentDataType === 'producao' || currentDataType === 'area_colhida') {
+                return 'cooxupe_checkbox_state_shared_producao_area';
+            }
+            // Keep others (like 'hectares') individual
+            return `cooxupe_checkbox_state_${currentDataType}`;
+        }
+
+        function saveCheckboxState() {
+            const checkboxes = document.querySelectorAll('#tab-culturas .checkbox-group input[type="checkbox"]');
+            const state = {};
+            checkboxes.forEach(cb => {
+                state[cb.value] = cb.checked;
+            });
+            localStorage.setItem(getStorageKey(), JSON.stringify(state));
+        }
+
+        function loadCheckboxState() {
+            const savedState = localStorage.getItem(getStorageKey());
+            if (savedState) {
+                try {
+                    const state = JSON.parse(savedState);
+                    const checkboxes = document.querySelectorAll('#tab-culturas .checkbox-group input[type="checkbox"]');
+                    checkboxes.forEach(cb => {
+                        if (state.hasOwnProperty(cb.value)) {
+                            cb.checked = state[cb.value];
+                        }
+                    });
+                } catch (e) {
+                    console.error("Erro ao carregar estado dos checkboxes:", e);
+                }
+            }
+        }
+
+        function changeDataType(type) {
+            window.location.href = '/?data_type=' + type;
+        }
+
+        function downloadData(event) {
+            event.preventDefault();
+
+            // Get saved states or default to empty (which backend will treat as "all" or handle accordingly)
+            const producaoStateStr = localStorage.getItem('cooxupe_checkbox_state_shared_producao_area');
+            const hectaresStateStr = localStorage.getItem('cooxupe_checkbox_state_hectares');
+
+            const params = new URLSearchParams();
+            params.append('data_type', currentDataType); // Keep current data type for context if needed, though download is now universal
+
+            // Process Produção/Area Colhida filters
+            if (producaoStateStr) {
+                try {
+                    const state = JSON.parse(producaoStateStr);
+                    // Filter only checked items
+                    const checkedCols = Object.keys(state).filter(key => state[key] === true);
+                    checkedCols.forEach(col => params.append('columns_producao', col));
+                } catch (e) {
+                    console.error("Error parsing producao state", e);
+                }
+            }
+
+            // Process Hectares filters
+            if (hectaresStateStr) {
+                try {
+                    const state = JSON.parse(hectaresStateStr);
+                    // Filter only checked items
+                    const checkedCols = Object.keys(state).filter(key => state[key] === true);
+                    checkedCols.forEach(col => params.append('columns_hectares', col));
+                } catch (e) {
+                    console.error("Error parsing hectares state", e);
+                }
+            }
+
+            window.location.href = `/download_data?${params.toString()}`;
+        }
+
+        function toggleCulturas() {
+            const content = document.getElementById('content-culturas');
+            const icon = document.getElementById('icon-culturas');
+
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                icon.classList.remove('collapsed');
+            } else {
+                content.classList.add('collapsed');
+                icon.classList.add('collapsed');
+            }
+        }
+
+        function toggleAllCheckboxes(shouldCheck) {
+            const checkboxes = document.querySelectorAll('#tab-culturas .checkbox-group input[type="checkbox"]');
+            let changed = false;
+
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked !== shouldCheck) {
+                    checkbox.checked = shouldCheck;
+                    changed = true;
+                    toggleColumn(checkbox.value);
+                }
+            });
+
+            if (changed) {
+                saveCheckboxState();
+            } else {
+                console.log(`Todos os checkboxes já estavam ${shouldCheck ? 'marcados' : 'desmarcados'}.`);
+            }
+        }
+
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+
+            tablinks = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        function toggleColumn(colName) {
+            const headers = document.querySelectorAll(`th[data-col="${colName}"]`);
+            const cells = document.querySelectorAll(`td[data-col="${colName}"]`);
+            const isChecked = document.querySelector(`input[value="${colName}"]`).checked;
+
+            const displayValue = isChecked ? 'table-cell' : 'none';
+
+            headers.forEach(th => th.style.display = displayValue);
+            cells.forEach(td => td.style.display = displayValue);
+
+            saveCheckboxState();
+        }
+
+        function clearMapFilter() {
+            document.getElementById('btn-clear-filter').style.display = 'none';
+            const rows = document.querySelectorAll('.data-row');
+            rows.forEach(row => {
+                row.style.display = '';
+                row.style.backgroundColor = '';
+            });
+        }
+
+        // Map Interaction
+        function highlightMap(municipio) {
+            const iframe = document.querySelector('iframe');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({
+                    type: 'municipioHover',
+                    name: municipio
+                }, '*');
+            }
+        }
+
+        function resetMap(municipio) {
+            const iframe = document.querySelector('iframe');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({
+                    type: 'municipioLeave',
+                    name: municipio
+                }, '*');
+            }
+        }
+
+        // Listen for messages from map
+        window.addEventListener('message', function (event) {
+            if (event.data.type === 'municipioClick') {
+                const municipioName = event.data.name.toUpperCase();
+                const rows = document.querySelectorAll('.data-row');
+
+                document.getElementById('btn-clear-filter').style.display = 'block';
+
+                rows.forEach(row => {
+                    const rowMunicipio = row.querySelector('td').textContent.trim().toUpperCase();
+                    if (rowMunicipio === municipioName) {
+                        row.style.display = '';
+                        row.style.backgroundColor = '#fff3cd'; // Highlight color
+                        row.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+
+                        if (!document.getElementById('tab-culturas').classList.contains('active')) {
+                            document.querySelector('.tab-button[onclick*="tab-culturas"]').click();
+                        }
+
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCheckboxState();
+            document.querySelectorAll('.checkbox-group input[type="checkbox"]:checked').forEach(checkbox => {
+                toggleColumn(checkbox.value);
+            });
+        });
+    </script>
+</body>
+
+</html>
