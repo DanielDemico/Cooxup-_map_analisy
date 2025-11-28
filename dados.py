@@ -44,7 +44,20 @@ def cooperados():
     df = pd.read_excel('cooxupé.xlsx')
     
     # Select specific columns
-    df = df[['CIDADE', 'COOPERADOS']]
+    # Ensure we get all relevant columns
+    # The column name might be 'ORG e ORG RESP' based on inspection
+    cols_to_keep = ['CIDADE', 'COOPERADOS']
+    
+    # Check for other columns if they exist
+    if 'ORG e ORG RESP' in df.columns:
+        cols_to_keep.append('ORG e ORG RESP')
+    elif 'ORG' in df.columns:
+        cols_to_keep.append('ORG')
+        
+    if 'ESTADO' in df.columns:
+        cols_to_keep.append('ESTADO')
+        
+    df = df[cols_to_keep]
     
     return df
 
@@ -54,5 +67,9 @@ if __name__ == "__main__":
     print(df.head())
 
     df = area_colhida()
+    print(df.columns)
+    print(df.head())
+
+    df = cooperados()
     print(df.columns)
     print(df.head())

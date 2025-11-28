@@ -5,6 +5,7 @@ import json
 from unidecode import unidecode
 from io import BytesIO
 import pandas as pd
+import re
 
 app = Flask(__name__)
 
@@ -92,8 +93,18 @@ def download_data():
             with open('municipios_filtrados.json', 'r', encoding='utf-8') as f:
                 valid_municipios = json.load(f)
             
-            valid_municipios_upper = [str(m).upper() for m in valid_municipios]
-            df = df[df['MUNICIPIO'].astype(str).str.upper().isin(valid_municipios_upper)]
+            # Use unidecode for robust matching (like in dashboard)
+            valid_municipios_norm = [unidecode(str(m)).upper() for m in valid_municipios]
+            
+            # Normalize dataframe column for filtering
+            df['MUNICIPIO_NORM'] = df['MUNICIPIO'].apply(lambda x: unidecode(str(x)).upper())
+            
+            # Filter
+            df = df[df['MUNICIPIO_NORM'].isin(valid_municipios_norm)]
+            
+            # Drop helper column
+            df = df.drop(columns=['MUNICIPIO_NORM'])
+            
         except Exception as e:
             print(f"Erro ao filtrar municipios para download: {e}")
 
@@ -169,6 +180,9 @@ def download_data():
     
     # Filter dataframe
     df = df[cols_to_keep]
+    
+    # Standardize Municipality names to Title Case (Capitalize)
+    df['MUNICIPIO'] = df['MUNICIPIO'].astype(str).str.upper()
 
     output = BytesIO()
    
@@ -203,12 +217,53 @@ def download_data():
         except Exception as e:
             print(f"Erro ao carregar detalhes dos municipios: {e}")
 
+    # Add Cooperados Info (ORG, RESP, Total Cooperados)
+    try:
+        df_coop = dados.cooperados()
+        
+        df_coop['ORG_STR'] = df_coop['ORG e ORG RESP'].astype(str).str.strip()
+        
+        # Tratamento de erro caso a coluna COOPERADOS tenha sujeira
+        df_coop['COOPERADOS'] = pd.to_numeric(df_coop['COOPERADOS'], errors='coerce').fillna(0)
+        
+        # Dicionário de Referência: {'300': 294, '301': 495, ...}
+        org_to_cooperados = df_coop.set_index('ORG_STR')['COOPERADOS'].to_dict()
+
+        # 2. Função para processar a célula "Núcleos Cooxupé"
+        def calcular_total_cooperados(nucleos_str):
+            if pd.isna(nucleos_str) or nucleos_str == '':
+                return 0
+            
+            # Regex para separar por ponto e vírgula, vírgula ou espaços múltiplos
+            # Ex: "300; 303, L01" vira ['300', '303', 'L01']
+            codigos = re.split(r'[;,\s]+', str(nucleos_str))
+            
+            total = 0
+            for codigo in codigos:
+                codigo_limpo = codigo.strip()
+                # Se o código existir no dicionário, soma a quantidade
+                if codigo_limpo in org_to_cooperados:
+                    total += org_to_cooperados[codigo_limpo]
+            
+            return total
+
+        # 3. Aplicar a lógica APENAS se a coluna Núcleos Cooxupé existir
+        if 'Núcleos Cooxupé' in df_produtividade.columns:
+            df_produtividade['Total Cooperados'] = df_produtividade['Núcleos Cooxupé'].apply(calcular_total_cooperados)
+        else:
+            # Fallback caso a coluna de núcleos não tenha sido gerada anteriormente
+            print("Aviso: Coluna 'Núcleos Cooxupé' não encontrada para cálculo.")
+        
+    except Exception as e:
+        print(f"Erro ao adicionar dados de cooperados: {e}")
+
     df_produtividade.replace('-', pd.NA, inplace=True)
     df_produtividade.replace('...', pd.NA, inplace=True)
     df_produtividade.dropna(axis=1, how='all', inplace=True)
 
+        
     # Sort by numeric columns (descending)
-    sort_cols = [c for c in df_produtividade.columns if c != 'MUNICIPIO' and c != 'Núcleos Cooxupé']
+    sort_cols = [c for c in df_produtividade.columns if c != 'MUNICIPIO' and c != 'Núcleos Cooxupé' and c != 'ORG/RESP']
     if sort_cols:
         df_produtividade.sort_values(by=sort_cols, ascending=False, inplace=True)
 
